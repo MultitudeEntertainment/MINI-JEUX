@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quiz Capitales</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #2b5876, #4e4376);
+      color: #f5f5f5;
+    }
+    .app {
+      width: 95%;
+      max-width: 900px;
+      background: rgba(15, 15, 30, 0.9);
+      border-radius: 18px;
+      padding: 24px 28px 30px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.9rem;
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 0.95rem;
+      color: #c7c7ff;
+      margin-bottom: 18px;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .difficulty {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .difficulty button {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.04);
+      color: #f5f5f5;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.15s ease;
+    }
+    .difficulty button.active {
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      color: #1b1b2f;
+      border-color: transparent;
+      font-weight: 600;
+    }
+    .difficulty button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+    .stats {
+      display: flex;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: #d0d0ff;
+      flex-wrap: wrap;
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .question-card {
+      margin-top: 10px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 14px;
+      padding: 18px 16px 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      color: #c7c7ff;
+    }
+    .question-text {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+    }
+    .answer-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      flex: 1;
+      min-width: 180px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(0,0,0,0.3);
+      color: #f5f5f5;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    input[type="text"]::placeholder {
+      color: #9a9ac0;
+    }
+    button.primary {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #36d1dc, #5b86e5);
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      white-space: nowrap;
+    }
+    button.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.45);
+    }
+    button.primary:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+    .feedback {
+      min-height: 22px;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+    .feedback.ok { color: #7bed9f; }
+    .feedback.ko { color: #ff6b81; }
+    .mini-window {
+      margin-top: 6px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.15);
+      font-size: 0.85rem;
+      color: #eaeaff;
+    }
+    .mini-window span.label {
+      color: #9a9ac0;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .bottom-bar {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: #c7c7ff;
+    }
+    .best-scores {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .best-scores .badge {
+      background: rgba(255,255,255,0.04);
+    }
+    .reset-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 4px 10px;
+      background: transparent;
+      color: #f5f5f5;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .reset-btn:hover {
+      background: rgba(255,255,255,0.08);
+    }
+    @media (max-width: 600px) {
+      .question-header { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .top-bar { flex-direction: column; align-items: flex-start; }
+      .bottom-bar { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Quiz des Capitales</h1>
+    <div class="subtitle">
+      Devine la capitale de 20 pays par partie, choisis ta difficulté et tente de battre ton record.
+    </div>
+
+    <div class="top-bar">
+      <div class="difficulty">
+        <button data-level="easy" class="active">Facile</button>
+        <button data-level="medium">Moyen</button>
+        <button data-level="hard">Difficile</button>
+      </div>
+      <div class="stats">
+        <div class="badge" id="stat-question">Question 1 / 20</div>
+        <div class="badge" id="stat-score">Score : 0</div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-header">
+        <div id="difficulty-label">Niveau : Facile</div>
+        <div id="current-level-hint">Pays plutôt connus</div>
+      </div>
+      <div class="question-text" id="question-text">
+        Chargement de la première question...
+      </div>
+
+      <div class="answer-row">
+        <input type="text" id="answer-input" placeholder="Écris ici la capitale..." autocomplete="off" />
+        <button class="primary" id="submit-btn">Valider</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="mini-window" id="mini-window" style="display:none;">
+        <div><span class="label">Pays :</span> <span id="mini-country"></span></div>
+        <div><span class="label">Capitale :</span> <span id="mini-capital"></span></div>
+        <div><span class="label">Ta réponse :</span> <span id="mini-user"></span></div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="best-scores" id="best-scores">
+        <!-- Meilleurs scores injectés ici -->
+      </div>
+      <div>
+        <button class="reset-btn" id="reset-game">Nouvelle partie</button>
+        <button class="reset-btn" id="reset-scores">Réinitialiser les scores</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Données de base : pays / capitales par difficulté ---
+    const DATA = {
+      easy: [
+        { country: "France", capital: "Paris" },
+        { country: "Espagne", capital: "Madrid" },
+        { country: "Italie", capital: "Rome" },
+        { country: "Allemagne", capital: "Berlin" },
+        { country: "Royaume-Uni", capital: "Londres" },
+        { country: "États-Unis", capital: "Washington" },
+        { country: "Canada", capital: "Ottawa" },
+        { country: "Brésil", capital: "Brasilia" },
+        { country: "Japon", capital: "Tokyo" },
+        { country: "Chine", capital: "Pékin" },
+        { country: "Russie", capital: "Moscou" },
+        { country: "Australie", capital: "Canberra" },
+        { country: "Mexique", capital: "Mexico" },
+        { country: "Portugal", capital: "Lisbonne" },
+        { country: "Pays-Bas", capital: "Amsterdam" },
+        { country: "Belgique", capital: "Bruxelles" },
+        { country: "Suisse", capital: "Berne" },
+        { country: "Grèce", capital: "Athènes" },
+        { country: "Turquie", capital: "Ankara" },
+        { country: "Inde", capital: "New Delhi" },
+      ],
+      medium: [
+        { country: "Suède", capital: "Stockholm" },
+        { country: "Norvège", capital: "Oslo" },
+        { country: "Finlande", capital: "Helsinki" },
+        { country: "Danemark", capital: "Copenhague" },
+        { country: "Pologne", capital: "Varsovie" },
+        { country: "Autriche", capital: "Vienne" },
+        { country: "Hongrie", capital: "Budapest" },
+        { country: "Tchéquie", capital: "Prague" },
+        { country: "Irlande", capital: "Dublin" },
+        { country: "Argentine", capital: "Buenos Aires" },
+        { country: "Chili", capital: "Santiago" },
+        { country: "Colombie", capital: "Bogota" },
+        { country: "Pérou", capital: "Lima" },
+        { country: "Afrique du Sud", capital: "Pretoria" },
+        { country: "Maroc", capital: "Rabat" },
+        { country: "Tunisie", capital: "Tunis" },
+        { country: "Arabie saoudite", capital: "Riyad" },
+        { country: "Indonésie", capital: "Jakarta" },
+        { country: "Thaïlande", capital: "Bangkok" },
+        { country: "Corée du Sud", capital: "Séoul" },
+      ],
+      hard: [
+        { country: "Bolivie", capital: "Sucre" },
+        { country: "Kazakhstan", capital: "Astana" },
+        { country: "Mongolie", capital: "Oulan-Bator" },
+        { country: "Azerbaïdjan", capital: "Bakou" },
+        { country: "Géorgie", capital: "Tbilissi" },
+        { country: "Érythrée", capital: "Asmara" },
+        { country: "Namibie", capital: "Windhoek" },
+        { country: "Botswana", capital: "Gaborone" },
+        { country: "Madagascar", capital: "Antananarivo" },
+        { country: "Sri Lanka", capital: "Sri Jayawardenepura Kotte" },
+        { country: "Myanmar", capital: "Naypyidaw" },
+        { country: "Laos", capital: "Vientiane" },
+        { country: "Cambodge", capital: "Phnom Penh" },
+        { country: "Népal", capital: "Katmandou" },
+        { country: "Islande", capital: "Reykjavik" },
+        { country: "Lettonie", capital: "Riga" },
+        { country: "Lituanie", capital: "Vilnius" },
+        { country: "Slovénie", capital: "Ljubljana" },
+        { country: "Croatie", capital: "Zagreb" },
+        { country: "Estonie", capital: "Tallinn" },
+      ],
+    };
+
+    const LEVEL_HINTS = {
+      easy: "Pays plutôt connus",
+      medium: "Pays un peu plus variés",
+      hard: "Pays plus rares, attention !",
+    };
+
+    const MAX_QUESTIONS = 20;
+
+    // --- Éléments DOM ---
+    const difficultyButtons = document.querySelectorAll(".difficulty button");
+    const statQuestion = document.getElementById("stat-question");
+    const statScore = document.getElementById("stat-score");
+    const difficultyLabel = document.getElementById("difficulty-label");
+    const currentLevelHint = document.getElementById("current-level-hint");
+    const questionText = document.getElementById("question-text");
+    const answerInput = document.getElementById("answer-input");
+    const submitBtn = document.getElementById("submit-btn");
+    const feedbackEl = document.getElementById("feedback");
+    const miniWindow = document.getElementById("mini-window");
+    const miniCountry = document.getElementById("mini-country");
+    const miniCapital = document.getElementById("mini-capital");
+    const miniUser = document.getElementById("mini-user");
+    const bestScoresContainer = document.getElementById("best-scores");
+    const resetGameBtn = document.getElementById("reset-game");
+    const resetScoresBtn = document.getElementById("reset-scores");
+
+    // --- État du jeu ---
+    let currentLevel = "easy";
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let questionsPool = [];
+
+    // --- Utilitaires ---
+    function shuffle(array) {
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function loadBestScores() {
+      const raw = localStorage.getItem("capitales_best_scores");
+      if (!raw) {
+        return { easy: 0, medium: 0, hard: 0 };
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        return {
+          easy: parsed.easy || 0,
+          medium: parsed.medium || 0,
+          hard: parsed.hard || 0,
+        };
+      } catch {
+        return { easy: 0, medium: 0, hard: 0 };
+      }
+    }
+
+    function saveBestScores(scores) {
+      localStorage.setItem("capitales_best_scores", JSON.stringify(scores));
+    }
+
+    function renderBestScores() {
+      const scores = loadBestScores();
+      bestScoresContainer.innerHTML = "";
+      const levels = [
+        { key: "easy", label: "Facile" },
+        { key: "medium", label: "Moyen" },
+        { key: "hard", label: "Difficile" },
+      ];
+      levels.forEach((lvl) => {
+        const div = document.createElement("div");
+        div.className = "badge";
+        div.textContent = `${lvl.label} : ${scores[lvl.key]} / ${MAX_QUESTIONS}`;
+        bestScoresContainer.appendChild(div);
+      });
+    }
+
+    function updateStats() {
+      statQuestion.textContent = `Question ${currentQuestionIndex + 1} / ${MAX_QUESTIONS}`;
+      statScore.textContent = `Score : ${score}`;
+    }
+
+    function setDifficulty(level) {
+      currentLevel = level;
+      difficultyButtons.forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.level === level);
+      });
+      difficultyLabel.textContent =
+        "Niveau : " + (level === "easy" ? "Facile" : level === "medium" ? "Moyen" : "Difficile");
+      currentLevelHint.textContent = LEVEL_HINTS[level];
+      startNewGame();
+    }
+
+    function startNewGame() {
+      score = 0;
+      currentQuestionIndex = 0;
+      feedbackEl.textContent = "";
+      feedbackEl.className = "feedback";
+      miniWindow.style.display = "none";
+      questionsPool = shuffle(DATA[currentLevel]).slice(0, MAX_QUESTIONS);
+      updateStats();
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      if (currentQuestionIndex >= MAX_QUESTIONS) {
+        endGame();
+        return;
+      }
+      const q = questionsPool[currentQuestionIndex];
+      questionText.textContent = `Quelle est la capitale de ${q.country} ?`;
+      answerInput.value = "";
+      answerInput.focus();
+    }
+
+    function normalize(str) {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
+
+    function handleAnswer() {
+      if (currentQuestionIndex >= MAX_QUESTIONS) return;
+
+      const userAnswer = answerInput.value;
+      if (!userAnswer.trim()) return;
+
+      const q = questionsPool[currentQuestionIndex];
+      const isCorrect = normalize(userAnswer) === normalize(q.capital);
+
+      miniCountry.textContent = q.country;
+      miniCapital.textContent = q.capital;
+      miniUser.textContent = userAnswer || "(vide)";
+      miniWindow.style.display = "block";
+
+      if (isCorrect) {
+        score++;
+        feedbackEl.textContent = "Bonne réponse !";
+        feedbackEl.className = "feedback ok";
+      } else {
+        feedbackEl.textContent = "Mauvaise réponse.";
+        feedbackEl.className = "feedback ko";
+      }
+
+      currentQuestionIndex++;
+      updateStats();
+
+      if (currentQuestionIndex >= MAX_QUESTIONS) {
+        setTimeout(endGame, 600);
+      } else {
+        setTimeout(() => {
+          feedbackEl.textContent = "";
+          feedbackEl.className = "feedback";
+          loadQuestion();
+        }, 600);
+      }
+    }
+
+    function endGame() {
+      questionText.textContent = `Partie terminée ! Tu as obtenu ${score} / ${MAX_QUESTIONS}.`;
+      submitBtn.disabled = true;
+      answerInput.disabled = true;
+
+      const bestScores = loadBestScores();
+      if (score > bestScores[currentLevel]) {
+        bestScores[currentLevel] = score;
+        saveBestScores(bestScores);
+        renderBestScores();
+        feedbackEl.textContent = "Nouveau record pour ce niveau !";
+        feedbackEl.className = "feedback ok";
+      } else {
+        feedbackEl.textContent = "Tu peux relancer une partie pour tenter de faire mieux.";
+        feedbackEl.className = "feedback";
+      }
+    }
+
+    function resetGameOnly() {
+      submitBtn.disabled = false;
+      answerInput.disabled = false;
+      startNewGame();
+    }
+
+    function resetScores() {
+      localStorage.removeItem("capitales_best_scores");
+      renderBestScores();
+    }
+
+    // --- Écouteurs ---
+    difficultyButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setDifficulty(btn.dataset.level);
+      });
+    });
+
+    submitBtn.addEventListener("click", handleAnswer);
+
+    answerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        handleAnswer();
+      }
+    });
+
+    resetGameBtn.addEventListener("click", resetGameOnly);
+    resetScoresBtn.addEventListener("click", resetScores);
+
+    // --- Init ---
+    renderBestScores();
+    startNewGame();
+  </script>
+</body>
+</html>
