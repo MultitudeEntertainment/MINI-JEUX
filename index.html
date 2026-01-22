@@ -2,10 +2,10 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Quiz des Capitales</title>
+<title>Quiz Capitales – Trouve le pays</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Leaflet (Carte du monde) -->
+<!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
@@ -17,45 +17,34 @@
         font-family: Arial, sans-serif;
         height: 100vh;
         overflow: hidden;
-    }
-
-    #app {
-        width: 100%;
-        height: 100%;
         display: flex;
-        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
-    /* Écrans */
-    .screen {
-        display: none;
-        width: 100%;
-        height: 100%;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-
-    .active {
-        display: block;
-    }
-
-    /* Accueil */
+    /* ACCUEIL */
     #home {
+        width: 350px;
+        height: 350px;
+        background: #161b22;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.4);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        text-align: center;
         gap: 20px;
+        text-align: center;
+        padding: 20px;
     }
 
     .btn {
-        padding: 15px 25px;
-        border: none;
+        padding: 12px 20px;
         border-radius: 10px;
-        font-size: 1.2rem;
+        border: none;
         cursor: pointer;
-        width: 250px;
+        width: 200px;
+        font-size: 1.1rem;
         color: white;
     }
 
@@ -63,53 +52,29 @@
     .medium { background: #f59e0b; }
     .hard { background: #ef4444; }
 
-    /* Quiz */
+    /* QUIZ */
     #quiz {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    #map {
-        height: 40vh;
         width: 100%;
-        border-radius: 10px;
-        overflow: hidden;
+        height: 100%;
+        display: none;
+        flex-direction: column;
     }
 
     #question-box {
         background: #161b22;
         padding: 15px;
-        border-radius: 10px;
+        text-align: center;
+        font-size: 1.3rem;
     }
 
-    .answer {
-        background: #21262d;
-        padding: 12px;
-        border-radius: 8px;
-        margin-top: 10px;
-        cursor: pointer;
-        border: 1px solid #30363d;
+    #map {
+        flex: 1;
+        width: 100%;
     }
 
-    .correct { background: #14532d !important; border-color: #22c55e !important; }
-    .wrong { background: #4c1d1d !important; border-color: #ef4444 !important; }
-
-    #next {
-        margin-top: 15px;
-        padding: 12px;
-        background: #3b82f6;
-        border: none;
-        border-radius: 8px;
-        color: white;
-        font-size: 1rem;
-        cursor: pointer;
-        display: none;
-    }
-
-    /* Résultat */
+    /* RESULTAT */
     #result {
-        display: flex;
+        display: none;
         flex-direction: column;
         justify-content: center;
         align-items: center;
@@ -119,77 +84,65 @@
 
     #restart {
         background: #3b82f6;
+        padding: 12px 20px;
+        border-radius: 10px;
+        border: none;
+        color: white;
+        cursor: pointer;
     }
 </style>
 </head>
 <body>
 
-<div id="app">
+<!-- ACCUEIL -->
+<div id="home">
+    <h2>🌍 Quiz des Capitales</h2>
+    <p>Trouve le pays en cliquant sur la carte</p>
 
-    <!-- ACCUEIL -->
-    <div id="home" class="screen active">
-        <h1>🌍 Quiz des Capitales</h1>
-        <p>Choisissez une difficulté</p>
+    <button class="btn easy" onclick="startGame('easy')">Facile</button>
+    <button class="btn medium" onclick="startGame('medium')">Moyen</button>
+    <button class="btn hard" onclick="startGame('hard')">Difficile</button>
+</div>
 
-        <button class="btn easy" onclick="startGame('easy')">Facile</button>
-        <button class="btn medium" onclick="startGame('medium')">Moyen</button>
-        <button class="btn hard" onclick="startGame('hard')">Difficile</button>
+<!-- QUIZ -->
+<div id="quiz">
+    <div id="question-box">
+        Capitale : <span id="capital"></span>
     </div>
+    <div id="map"></div>
+</div>
 
-    <!-- QUIZ -->
-    <div id="quiz" class="screen">
-        <div id="map"></div>
-
-        <div id="question-box">
-            <h2 id="country-name"></h2>
-            <p>Quelle est la capitale ?</p>
-
-            <div id="answers"></div>
-
-            <button id="next" onclick="nextQuestion()">Question suivante</button>
-        </div>
-    </div>
-
-    <!-- RESULTAT -->
-    <div id="result" class="screen">
-        <h1 id="score"></h1>
-        <p>Vous pouvez montrer votre score aux autres membres du serveur</p>
-        <button id="restart" class="btn" onclick="goHome()">Retour à l'accueil</button>
-    </div>
-
+<!-- RESULTAT -->
+<div id="result">
+    <h1 id="score"></h1>
+    <p>Vous pouvez montrer votre score aux autres membres du serveur</p>
+    <button id="restart" onclick="goHome()">Retour à l'accueil</button>
 </div>
 
 <script>
 /* ---------------------------
    BASE DE DONNÉES PAYS
-   Avec coordonnées GPS
 ----------------------------*/
 const COUNTRIES = [
-    { name: "France", capital: "Paris", lat: 48.8566, lon: 2.3522, difficulty: "easy" },
-    { name: "Espagne", capital: "Madrid", lat: 40.4168, lon: -3.7038, difficulty: "easy" },
-    { name: "Italie", capital: "Rome", lat: 41.9028, lon: 12.4964, difficulty: "easy" },
-    { name: "États-Unis", capital: "Washington", lat: 38.9072, lon: -77.0369, difficulty: "easy" },
-    { name: "Canada", capital: "Ottawa", lat: 45.4215, lon: -75.6972, difficulty: "easy" },
-    { name: "Japon", capital: "Tokyo", lat: 35.6762, lon: 139.6503, difficulty: "easy" },
+    { name: "France", capital: "Paris", lat: 46.5, lon: 2.5, difficulty: "easy" },
+    { name: "Espagne", capital: "Madrid", lat: 40.4, lon: -3.7, difficulty: "easy" },
+    { name: "Italie", capital: "Rome", lat: 41.9, lon: 12.5, difficulty: "easy" },
+    { name: "Canada", capital: "Ottawa", lat: 56, lon: -96, difficulty: "easy" },
+    { name: "Japon", capital: "Tokyo", lat: 36, lon: 138, difficulty: "easy" },
 
-    /* Moyen */
-    { name: "Portugal", capital: "Lisbonne", lat: 38.7223, lon: -9.1393, difficulty: "medium" },
-    { name: "Belgique", capital: "Bruxelles", lat: 50.8503, lon: 4.3517, difficulty: "medium" },
-    { name: "Turquie", capital: "Ankara", lat: 39.9334, lon: 32.8597, difficulty: "medium" },
-    { name: "Égypte", capital: "Le Caire", lat: 30.0444, lon: 31.2357, difficulty: "medium" },
+    { name: "Portugal", capital: "Lisbonne", lat: 39.5, lon: -8, difficulty: "medium" },
+    { name: "Turquie", capital: "Ankara", lat: 39, lon: 35, difficulty: "medium" },
+    { name: "Égypte", capital: "Le Caire", lat: 26, lon: 30, difficulty: "medium" },
 
-    /* Difficile */
-    { name: "Mongolie", capital: "Oulan-Bator", lat: 47.8864, lon: 106.9057, difficulty: "hard" },
-    { name: "Bhoutan", capital: "Thimphou", lat: 27.4728, lon: 89.6390, difficulty: "hard" },
-    { name: "Népal", capital: "Katmandou", lat: 27.7172, lon: 85.3240, difficulty: "hard" },
-    { name: "Tanzanie", capital: "Dodoma", lat: -6.1630, lon: 35.7516, difficulty: "hard" }
+    { name: "Mongolie", capital: "Oulan-Bator", lat: 46, lon: 103, difficulty: "hard" },
+    { name: "Bhoutan", capital: "Thimphou", lat: 27.5, lon: 90.5, difficulty: "hard" },
+    { name: "Tanzanie", capital: "Dodoma", lat: -6, lon: 35, difficulty: "hard" }
 ];
 
 /* ---------------------------
    VARIABLES DU JEU
 ----------------------------*/
 let map;
-let marker;
 let difficulty;
 let questions = [];
 let index = 0;
@@ -204,6 +157,8 @@ function initMap() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 6
     }).addTo(map);
+
+    map.on("click", onMapClick);
 }
 
 /* ---------------------------
@@ -218,12 +173,10 @@ function startGame(diff) {
         if (diff === "easy") return c.difficulty === "easy";
         if (diff === "medium") return c.difficulty !== "hard";
         return true;
-    });
+    }).sort(() => Math.random() - 0.5).slice(0, 20);
 
-    questions = questions.sort(() => Math.random() - 0.5).slice(0, 20);
-
-    document.getElementById("home").classList.remove("active");
-    document.getElementById("quiz").classList.add("active");
+    document.getElementById("home").style.display = "none";
+    document.getElementById("quiz").style.display = "flex";
 
     if (!map) initMap();
 
@@ -231,85 +184,68 @@ function startGame(diff) {
 }
 
 /* ---------------------------
-   CHARGER UNE QUESTION
+   CHARGER QUESTION
 ----------------------------*/
 function loadQuestion() {
     const q = questions[index];
-
-    document.getElementById("country-name").textContent = q.name;
-
-    // Zoom sur le pays
-    map.setView([q.lat, q.lon], 4);
-
-    if (marker) marker.remove();
-    marker = L.marker([q.lat, q.lon]).addTo(map);
-
-    // Générer réponses
-    const answersDiv = document.getElementById("answers");
-    answersDiv.innerHTML = "";
-
-    const wrong = COUNTRIES.filter(c => c.name !== q.name)
-                           .sort(() => Math.random() - 0.5)
-                           .slice(0, 2);
-
-    const options = [
-        { text: q.capital, correct: true },
-        { text: wrong[0].capital, correct: false },
-        { text: wrong[1].capital, correct: false }
-    ].sort(() => Math.random() - 0.5);
-
-    options.forEach(opt => {
-        const div = document.createElement("div");
-        div.className = "answer";
-        div.textContent = opt.text;
-        div.onclick = () => selectAnswer(div, opt.correct);
-        answersDiv.appendChild(div);
-    });
-
-    document.getElementById("next").style.display = "none";
+    document.getElementById("capital").textContent = q.capital;
 }
 
 /* ---------------------------
-   RÉPONSE
+   CLIQUE SUR LA CARTE
 ----------------------------*/
-function selectAnswer(div, correct) {
-    if (correct) {
-        div.classList.add("correct");
+function onMapClick(e) {
+    const q = questions[index];
+
+    const dist = distance(e.latlng.lat, e.latlng.lng, q.lat, q.lon);
+
+    if (dist < 500) {
         score++;
+        L.circle([q.lat, q.lon], { radius: 300000, color: "green" }).addTo(map);
     } else {
-        div.classList.add("wrong");
+        L.circle([e.latlng.lat, e.latlng.lng], { radius: 300000, color: "red" }).addTo(map);
+        L.circle([q.lat, q.lon], { radius: 300000, color: "green" }).addTo(map);
     }
 
-    document.querySelectorAll(".answer").forEach(a => a.onclick = null);
-    document.getElementById("next").style.display = "block";
+    index++;
+    if (index >= 20) return endGame();
+
+    setTimeout(() => {
+        map.eachLayer(layer => { if (layer instanceof L.Circle) map.removeLayer(layer); });
+        loadQuestion();
+    }, 1000);
 }
 
 /* ---------------------------
-   QUESTION SUIVANTE
+   DISTANCE ENTRE 2 POINTS
 ----------------------------*/
-function nextQuestion() {
-    index++;
-    if (index >= 20) return endGame();
-    loadQuestion();
+function distance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2-lat1) * Math.PI/180;
+    const dLon = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(lat1*Math.PI/180) *
+              Math.cos(lat2*Math.PI/180) *
+              Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
 /* ---------------------------
    FIN DU JEU
 ----------------------------*/
 function endGame() {
-    document.getElementById("quiz").classList.remove("active");
-    document.getElementById("result").classList.add("active");
+    document.getElementById("quiz").style.display = "none";
+    document.getElementById("result").style.display = "flex";
 
-    document.getElementById("score").textContent =
-        `Score : ${score} / 20`;
+    document.getElementById("score").textContent = `Score : ${score} / 20`;
 }
 
 /* ---------------------------
    RETOUR ACCUEIL
 ----------------------------*/
 function goHome() {
-    document.getElementById("result").classList.remove("active");
-    document.getElementById("home").classList.add("active");
+    document.getElementById("result").style.display = "none";
+    document.getElementById("home").style.display = "flex";
 }
 </script>
 
