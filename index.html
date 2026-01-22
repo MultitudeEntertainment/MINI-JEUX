@@ -132,22 +132,41 @@
 </div>
 
 <script>
+/* ---------------------------
+   PAYS + CAPITALES
+----------------------------*/
 const COUNTRIES = [
-    { name: "France",   capital: "Paris",        difficulty: "easy" },
-    { name: "Espagne",  capital: "Madrid",      difficulty: "easy" },
-    { name: "Italie",   capital: "Rome",        difficulty: "easy" },
-    { name: "Canada",   capital: "Ottawa",      difficulty: "easy" },
-    { name: "Japon",    capital: "Tokyo",       difficulty: "easy" },
-
-    { name: "Portugal", capital: "Lisbonne",    difficulty: "medium" },
-    { name: "Turquie",  capital: "Ankara",      difficulty: "medium" },
-    { name: "Égypte",   capital: "Le Caire",    difficulty: "medium" },
-
+    { name: "France",   capital: "Paris", difficulty: "easy" },
+    { name: "Espagne",  capital: "Madrid", difficulty: "easy" },
+    { name: "Italie",   capital: "Rome", difficulty: "easy" },
+    { name: "Allemagne",capital: "Berlin", difficulty: "easy" },
+    { name: "Portugal", capital: "Lisbonne", difficulty: "medium" },
+    { name: "Turquie",  capital: "Ankara", difficulty: "medium" },
+    { name: "Égypte",   capital: "Le Caire", difficulty: "medium" },
     { name: "Mongolie", capital: "Oulan-Bator", difficulty: "hard" },
-    { name: "Bhoutan",  capital: "Thimphou",    difficulty: "hard" },
-    { name: "Tanzanie", capital: "Dodoma",      difficulty: "hard" }
+    { name: "Tanzanie", capital: "Dodoma", difficulty: "hard" }
 ];
 
+/* ---------------------------
+   GEOJSON intégré (simplifié)
+----------------------------*/
+const GEOJSON = {
+"type":"FeatureCollection",
+"features":[
+    {"type":"Feature","properties":{"ADMIN":"France"},"geometry":{"type":"Polygon","coordinates":[[[ -5, 42 ],[ 8, 42 ],[ 8, 51 ],[ -5, 51 ],[ -5, 42 ]]]}},
+    {"type":"Feature","properties":{"ADMIN":"Espagne"},"geometry":{"type":"Polygon","coordinates":[[[ -10, 36 ],[ 4, 36 ],[ 4, 44 ],[ -10, 44 ],[ -10, 36 ]]]}},
+    {"type":"Feature","properties":{"ADMIN":"Italie"},"geometry":{"type":"Polygon","coordinates":[[[ 8, 37 ],[ 19, 37 ],[ 19, 47 ],[ 8, 47 ],[ 8, 37 ]]]}},
+    {"type":"Feature","properties":{"ADMIN":"Allemagne"},"geometry":{"type":"Polygon","coordinates":[[[ 5, 47 ],[ 15, 47 ],[ 15, 55 ],[ 5, 55 ],[ 5, 47 ]]]}},
+    {"type":"Feature","properties":{"ADMIN":"Portugal"},"geometry":{"type":"Polygon","coordinates":[[[ -10, 36 ],[ -6, 36 ],[ -6, 43 ],[ -10, 43 ],[ -10, 36 ]]]}},
+    {"type":"Feature","properties":{"ADMIN":"Turquie"},"geometry":{"type":"Polygon","coordinates":[[[ 26, 36 ],[ 45, 36 ],[ 45, 42 ],[ 26, 42 ],[ 26, 36 ]]]}},
+    {"type":"Feature","properties":{"ADMIN":"Égypte"},"geometry":{"type":"Polygon","coordinates":[[[ 25, 22 ],[ 36, 22 ],[ 36, 32 ],[ 25, 32 ],[ 25, 22 ]]]}},
+    {"type":"Feature","properties":{"ADMIN":"Mongolie"},"geometry":{"type":"Polygon","coordinates":[[[ 87, 41 ],[ 120, 41 ],[ 120, 52 ],[ 87, 52 ],[ 87, 41 ]]]}},
+    {"type":"Feature","properties":{"ADMIN":"Tanzanie"},"geometry":{"type":"Polygon","coordinates":[[[ 29, -12 ],[ 40, -12 ],[ 40, 0 ],[ 29, 0 ],[ 29, -12 ]]]}}
+]};
+
+/* ---------------------------
+   VARIABLES DU JEU
+----------------------------*/
 let map;
 let geojsonLayer;
 let difficulty;
@@ -155,30 +174,33 @@ let questions = [];
 let index = 0;
 let score = 0;
 
+/* ---------------------------
+   INITIALISATION CARTE
+----------------------------*/
 function initMap() {
     map = L.map('map').setView([20, 0], 2);
 
-    // Fond de carte SANS labels (pas de villes, pas de noms)
+    // Fond sans labels
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
         maxZoom: 6
     }).addTo(map);
 
-    fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson")
-        .then(res => res.json())
-        .then(data => {
-            geojsonLayer = L.geoJSON(data, {
-                style: {
-                    color: "#555",
-                    weight: 1,
-                    fillOpacity: 0.1
-                },
-                onEachFeature: (feature, layer) => {
-                    layer.on("click", () => onCountryClick(feature.properties.ADMIN));
-                }
-            }).addTo(map);
-        });
+    // Ajout du GeoJSON intégré
+    geojsonLayer = L.geoJSON(GEOJSON, {
+        style: {
+            color: "#555",
+            weight: 1,
+            fillOpacity: 0.1
+        },
+        onEachFeature: (feature, layer) => {
+            layer.on("click", () => onCountryClick(feature.properties.ADMIN));
+        }
+    }).addTo(map);
 }
 
+/* ---------------------------
+   DÉMARRER LE JEU
+----------------------------*/
 function startGame(diff) {
     difficulty = diff;
     score = 0;
@@ -198,6 +220,9 @@ function startGame(diff) {
     loadQuestion();
 }
 
+/* ---------------------------
+   CHARGER QUESTION
+----------------------------*/
 function loadQuestion() {
     const q = questions[index];
     document.getElementById("capital").textContent = q.capital;
@@ -205,6 +230,9 @@ function loadQuestion() {
     document.getElementById("qscore").textContent = score;
 }
 
+/* ---------------------------
+   CLIQUE SUR UN PAYS
+----------------------------*/
 function onCountryClick(clickedName) {
     const q = questions[index];
 
@@ -225,8 +253,10 @@ function onCountryClick(clickedName) {
     }, 1200);
 }
 
+/* ---------------------------
+   COLORIER UN PAYS
+----------------------------*/
 function highlightCountry(name, color) {
-    if (!geojsonLayer) return;
     geojsonLayer.eachLayer(layer => {
         if (layer.feature.properties.ADMIN === name) {
             layer.setStyle({
@@ -238,8 +268,10 @@ function highlightCountry(name, color) {
     });
 }
 
+/* ---------------------------
+   RESET STYLE
+----------------------------*/
 function resetStyles() {
-    if (!geojsonLayer) return;
     geojsonLayer.eachLayer(layer => {
         layer.setStyle({
             color: "#555",
@@ -249,6 +281,9 @@ function resetStyles() {
     });
 }
 
+/* ---------------------------
+   FIN DU JEU
+----------------------------*/
 function endGame() {
     document.getElementById("quiz").style.display = "none";
     document.getElementById("result").style.display = "flex";
@@ -256,6 +291,9 @@ function endGame() {
     document.getElementById("score").textContent = `Score : ${score} / 20`;
 }
 
+/* ---------------------------
+   RETOUR ACCUEIL
+----------------------------*/
 function goHome() {
     document.getElementById("result").style.display = "none";
     document.getElementById("home").style.display = "flex";
